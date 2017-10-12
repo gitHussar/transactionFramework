@@ -59,7 +59,7 @@ public class TransactionCoordinatorTest {
 		operations.add(operation1);
 		Operation operation2 = Mockito.mock(Operation.class);
 		when(operation2.prepareTransaction(Matchers.anyString())).thenReturn(Operation.Status.OK);
-		when(operation2.commit(Matchers.anyString())).thenReturn(Operation.Status.ERROR);
+		when(operation2.commit(Matchers.anyString())).thenReturn(Operation.Status.OK);
 		operations.add(operation2);
 		
 		return operations;
