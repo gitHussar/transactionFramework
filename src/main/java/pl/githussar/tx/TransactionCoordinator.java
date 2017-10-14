@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class TransactionCoordinator {
 
-	public List<Operation> operations;
+	private List<Operation> operations;
 	
 	public TransactionCoordinator(List<Operation> operations){
 		this.operations = operations;
@@ -17,25 +17,26 @@ public class TransactionCoordinator {
 	}
 	
 	public Operation.Status executeTwoPhaseCommit(){
-		List<SingleTransaction> transactionPrepared = null;
-		try {
-			transactionPrepared = executePreparationPhase(operations);
-		} catch (TransactionException e){
+		List<SingleTransaction> transactionPrepared = executePreparationPhase(operations);
+		boolean isError = transactionPrepared.stream()
+				.anyMatch(element -> Operation.Status.ERROR.equals(element.getStatus()));
+		if (isError){
+			executeRollbackOnlyForCorrectOpenedTranaction(transactionPrepared);
 			return Operation.Status.ERROR;
 		}
 		return executeCommitPhase(transactionPrepared);
 	}
 	
-	private List<SingleTransaction> executePreparationPhase(List<Operation> operations) throws TransactionException{
+	private List<SingleTransaction> executePreparationPhase(List<Operation> operations){
 		List<SingleTransaction> operationsPrepared = new ArrayList<>();
 		for (Operation operation : operations ){
 			String uniqueID = UUID.randomUUID().toString();
 			Operation.Status restunStatus = operation.prepareTransaction(uniqueID);
-			if (restunStatus == Operation.Status.ERROR){
-				throw new TransactionException("PreparationPhase error");
-			}
 			SingleTransaction singleTranaction = new SingleTransaction(uniqueID, restunStatus, operation);
 			operationsPrepared.add(singleTranaction);
+			if (restunStatus == Operation.Status.ERROR){
+				break;
+			}
 		}
 		return operationsPrepared;
 	}
@@ -49,6 +50,19 @@ public class TransactionCoordinator {
 			if (restunStatus == Operation.Status.ERROR){
 				//TODO
 				return Operation.Status.ERROR;
+			}
+		}
+		return Operation.Status.OK;
+	}
+	
+	private Operation.Status executeRollbackOnlyForCorrectOpenedTranaction(List<SingleTransaction> transactionPrepared){
+		for (SingleTransaction operationInfo : transactionPrepared ){
+			if (Operation.Status.OK.equals(operationInfo.getStatus())){
+				Operation.Status restunStatus = operationInfo.getOperation().rollback(operationInfo.getOperationId());
+				if (restunStatus == Operation.Status.ERROR){
+					//TODO
+					return Operation.Status.ERROR;
+				}
 			}
 		}
 		return Operation.Status.OK;
