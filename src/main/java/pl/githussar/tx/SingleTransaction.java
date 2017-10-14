@@ -2,20 +2,22 @@ package pl.githussar.tx;
 
 public class SingleTransaction {
 
-	private Operation.Status status;
+	enum Status {
+		PREPARED,
+		COMMITED,
+		ERROR,
+	}
+	
+	private Status status;
 
 	private String operationId;
 	
 	private Operation operation;
 
-	public SingleTransaction(String operationId, Operation.Status status, Operation operation){
+	public SingleTransaction(String operationId, Status status, Operation operation){
 		this.operationId = operationId;
 		this.status = status;
 		this.operation = operation;
-	}
-	
-	public Operation.Status getStatus() {
-		return status;
 	}
 
 	public String getOperationId() {
@@ -24,5 +26,13 @@ public class SingleTransaction {
 	
 	public Operation getOperation() {
 		return operation;
+	}
+	
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
 	}
 }
