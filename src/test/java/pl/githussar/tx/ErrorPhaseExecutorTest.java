@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -17,6 +18,11 @@ public class ErrorPhaseExecutorTest {
 
 	@Mock
 	private Operation mockOperation;
+	
+	@Before
+	public void setUp(){
+		when(mockOperation.revert(anyString())).thenReturn(Operation.Status.OK);
+	}
 	
 	@Test
 	public void shouldCallRevertOnAllErrorInRollbackPreparedPhase(){
@@ -42,7 +48,9 @@ public class ErrorPhaseExecutorTest {
 		executorErrorPhase.rollbackCommitedPhase(transactionsCommited);
 		
 		//then
-		Mockito.verify(mockOperation,Mockito.times(transactionsCommited.size())).revert(anyString());
+		for (SingleTransaction tranasaction : transactionsCommited){
+			Mockito.verify(tranasaction.getOperation(),Mockito.times(1)).revert(anyString());
+		}
 	}
 	
 	@Test
@@ -56,7 +64,9 @@ public class ErrorPhaseExecutorTest {
 		executorErrorPhase.rollbackCommitedPhase(transactionsCommited);
 				
 		//then
-		Mockito.verify(mockOperation,Mockito.times(transactionsCommited.size())).rollback(anyString());
+		for (SingleTransaction tranasaction : transactionsCommited){
+			Mockito.verify(tranasaction.getOperation(),Mockito.times(1)).rollback(anyString());
+		}
 	}
 	
 	private List<SingleTransaction> prepareTransactionsForRollbackPreparedPhaseWithErrors(){
@@ -75,12 +85,20 @@ public class ErrorPhaseExecutorTest {
 	private List<SingleTransaction> prepareTransactionsForRollbackCommitedPhase(SingleTransaction.Status status){
 		List<SingleTransaction> transactionCommited = new ArrayList<>();
 		
+		Operation mockOperationRevertFailed = Mockito.mock(Operation.class);
+		when(mockOperationRevertFailed.revert(anyString())).thenReturn(Operation.Status.ERROR);
+		
 		SingleTransaction singleTransaction = Mockito.mock(SingleTransaction.class);
-		when(singleTransaction.getOperation()).thenReturn(mockOperation);
+		when(singleTransaction.getOperation()).thenReturn(mockOperationRevertFailed);
 		when(singleTransaction.getStatus()).thenReturn(status);
 		
+		
+		SingleTransaction singleTransaction2 = Mockito.mock(SingleTransaction.class);
+		when(singleTransaction2.getOperation()).thenReturn(mockOperation);
+		when(singleTransaction2.getStatus()).thenReturn(status);
+		
 		transactionCommited.add(singleTransaction);
-		transactionCommited.add(singleTransaction);
+		transactionCommited.add(singleTransaction2);
 		
 		return transactionCommited;
 	}
