@@ -3,8 +3,12 @@ package pl.githussar.tx;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.log4j.Logger;
+
 public class ErrorPhaseExecutor {
 
+	static final Logger logger = Logger.getLogger(ErrorPhaseExecutor.class);
+	
 	public static ErrorPhaseExecutor createInstance(){
 		return new ErrorPhaseExecutor();
 	}
@@ -35,7 +39,7 @@ public class ErrorPhaseExecutor {
 		for (SingleTransaction operationInfo : transactions ){
 			Operation.Status returnedStatus = operationInfo.getOperation().revert(operationInfo.getOperationId());
 			if (returnedStatus == Operation.Status.ERROR){
-				//TODO
+				logger.error("Failed revert of operation:"+operationInfo.getOperationId());
 				return Operation.Status.ERROR;
 			}
 		}
