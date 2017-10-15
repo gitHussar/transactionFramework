@@ -52,12 +52,11 @@ public class TwoCommitsPhaseExceutor {
 		Operation.Status returnStatus = Operation.Status.OK;
 		for (SingleTransaction transactionInfo : transactionPrepared ){
 			Operation.Status operationStatus = transactionInfo.getOperation().commit(transactionInfo.getOperationId());
-			SingleTransaction.Status transactionStatus = (Operation.Status.OK == operationStatus ? 
-					SingleTransaction.Status.COMMITED : SingleTransaction.Status.ERROR);
-			transactionInfo.setStatus(transactionStatus);
 			if (operationStatus == Operation.Status.ERROR){
 				returnStatus =  Operation.Status.ERROR;
 				break;
+			} else {
+				transactionInfo.setStatus(SingleTransaction.Status.COMMITED);
 			}
 		}
 		if (returnStatus == Operation.Status.ERROR){
