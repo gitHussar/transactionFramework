@@ -13,6 +13,6 @@ public interface Operation {
 	
 	public Status rollback(String operationId);
 	
-	public Status invert(String operationId);
+	public Status revert(String operationId);
 	
 }

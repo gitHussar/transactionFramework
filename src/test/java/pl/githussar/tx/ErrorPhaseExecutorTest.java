@@ -19,7 +19,7 @@ public class ErrorPhaseExecutorTest {
 	private Operation mockOperation;
 	
 	@Test
-	public void shouldCallInvertOnAllErrorInRollbackPreparedPhase(){
+	public void shouldCallRevertOnAllErrorInRollbackPreparedPhase(){
 		//given
 		List<SingleTransaction> transactionPrepared = prepareTransactionsForRollbackPreparedPhaseWithErrors();
 		
@@ -28,11 +28,11 @@ public class ErrorPhaseExecutorTest {
 		executorErrorPhase.rollbackPreparedPhase(transactionPrepared);
 		
 		//then
-		Mockito.verify(mockOperation,Mockito.times(transactionPrepared.size())).invert(anyString());
+		Mockito.verify(mockOperation,Mockito.times(transactionPrepared.size())).revert(anyString());
 	}
 	
 	@Test
-	public void shouldCallInvertOnAlreadyCommitedOperationWhenErrorInCommitPhase(){
+	public void shouldCallRevertOnAlreadyCommitedOperationWhenErrorInCommitPhase(){
 		//given
 		List<SingleTransaction> transactionsCommited = prepareTransactionsForRollbackCommitedPhase(
 				SingleTransaction.Status.COMMITED);
@@ -42,7 +42,7 @@ public class ErrorPhaseExecutorTest {
 		executorErrorPhase.rollbackCommitedPhase(transactionsCommited);
 		
 		//then
-		Mockito.verify(mockOperation,Mockito.times(transactionsCommited.size())).invert(anyString());
+		Mockito.verify(mockOperation,Mockito.times(transactionsCommited.size())).revert(anyString());
 	}
 	
 	@Test

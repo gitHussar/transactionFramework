@@ -14,7 +14,7 @@ public class ErrorPhaseExecutor {
 		for (SingleTransaction operationInfo : transactionPrepared ){
 			Operation.Status returnedStatus = operationInfo.getOperation().rollback(operationInfo.getOperationId());
 			if (returnedStatus == Operation.Status.ERROR){
-				operationInfo.getOperation().invert(operationInfo.getOperationId());
+				operationInfo.getOperation().revert(operationInfo.getOperationId());
 				returnStatus = Operation.Status.ERROR;
 			}
 		}
@@ -22,7 +22,7 @@ public class ErrorPhaseExecutor {
 	}
 	
 	public void rollbackCommitedPhase(List<SingleTransaction> transactionPrepared){
-		executeInvertPhase(transactionPrepared.stream()
+		executeRevertPhase(transactionPrepared.stream()
 				.filter(element -> SingleTransaction.Status.COMMITED.equals(element.getStatus()))
 				.collect(Collectors.toList()));
 		rollbackPreparedPhase(transactionPrepared.stream()
@@ -31,9 +31,9 @@ public class ErrorPhaseExecutor {
 		
 	}
 
-	private Operation.Status executeInvertPhase(List<SingleTransaction> transactions){
+	private Operation.Status executeRevertPhase(List<SingleTransaction> transactions){
 		for (SingleTransaction operationInfo : transactions ){
-			Operation.Status returnedStatus = operationInfo.getOperation().invert(operationInfo.getOperationId());
+			Operation.Status returnedStatus = operationInfo.getOperation().revert(operationInfo.getOperationId());
 			if (returnedStatus == Operation.Status.ERROR){
 				//TODO
 				return Operation.Status.ERROR;
