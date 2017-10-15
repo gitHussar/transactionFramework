@@ -13,16 +13,13 @@ public class ErrorPhaseExecutor {
 		return new ErrorPhaseExecutor();
 	}
 	
-	public Operation.Status rollbackPreparedPhase(List<SingleTransaction> transactionPrepared){
-		Operation.Status returnStatus = Operation.Status.OK;
+	public void rollbackPreparedPhase(List<SingleTransaction> transactionPrepared){
 		for (SingleTransaction operationInfo : transactionPrepared ){
 			Operation.Status returnedStatus = operationInfo.getOperation().rollback(operationInfo.getOperationId());
 			if (returnedStatus == Operation.Status.ERROR){
 				operationInfo.getOperation().revert(operationInfo.getOperationId());
-				returnStatus = Operation.Status.ERROR;
 			}
 		}
-		return returnStatus;
 	}
 	
 	public void rollbackCommitedPhase(List<SingleTransaction> transactionPrepared){
@@ -35,14 +32,12 @@ public class ErrorPhaseExecutor {
 		
 	}
 
-	private Operation.Status executeRevertPhase(List<SingleTransaction> transactions){
+	private void executeRevertPhase(List<SingleTransaction> transactions){
 		for (SingleTransaction operationInfo : transactions ){
 			Operation.Status returnedStatus = operationInfo.getOperation().revert(operationInfo.getOperationId());
 			if (returnedStatus == Operation.Status.ERROR){
 				logger.error("Failed revert of operation:"+operationInfo.getOperationId());
-				return Operation.Status.ERROR;
 			}
 		}
-		return Operation.Status.OK;
 	}
 }
