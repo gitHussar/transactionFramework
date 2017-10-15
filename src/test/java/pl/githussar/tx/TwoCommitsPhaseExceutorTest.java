@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-public class TransactionCoordinatorTest {
+public class TwoCommitsPhaseExceutorTest {
 
 	@Test
 	public void shouldReturnSuccessStatusIfAllOfTwoPhaseOperationSendSuccess(){
@@ -18,7 +18,7 @@ public class TransactionCoordinatorTest {
 		List<Operation> operations = prepareFullSuccessOperationListForTwoPhase();
 		
 		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
+		TwoCommitsPhaseExceutor transactionCoordinator = TwoCommitsPhaseExceutor.createInstance(operations);
 		Operation.Status status = transactionCoordinator.executeTwoPhaseCommit();
 		
 		//then
@@ -31,7 +31,7 @@ public class TransactionCoordinatorTest {
 		List<Operation> operations = prepareOperationFromPreparingPhaseWithErrorStatus();
 		
 		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
+		TwoCommitsPhaseExceutor transactionCoordinator = TwoCommitsPhaseExceutor.createInstance(operations);
 		Operation.Status status = transactionCoordinator.executeTwoPhaseCommit();
 		
 		//then
@@ -44,7 +44,7 @@ public class TransactionCoordinatorTest {
 		List<Operation> operations = prepareOperationFromCommitingPhaseWithErrorStatus();
 		
 		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
+		TwoCommitsPhaseExceutor transactionCoordinator = new TwoCommitsPhaseExceutor(operations);
 		Operation.Status status = transactionCoordinator.executeTwoPhaseCommit();
 		
 		//then
@@ -57,7 +57,7 @@ public class TransactionCoordinatorTest {
 		List<Operation> operations = prepareOperationFromPreparingPhaseWithErrorStatus();
 		
 		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
+		TwoCommitsPhaseExceutor transactionCoordinator =TwoCommitsPhaseExceutor.createInstance(operations);
 		transactionCoordinator.executeTwoPhaseCommit();
 		
 		//then
@@ -73,7 +73,7 @@ public class TransactionCoordinatorTest {
 		List<Operation> operations = prepareOperationFromPreparingPhaseWithErrorStatus();
 		
 		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
+		TwoCommitsPhaseExceutor transactionCoordinator = TwoCommitsPhaseExceutor.createInstance(operations);
 		transactionCoordinator.executeTwoPhaseCommit();
 		
 		//then
@@ -89,66 +89,13 @@ public class TransactionCoordinatorTest {
 		List<Operation> operations = prepareOperationFromPreparingPhaseWithErrorStatus();
 		
 		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
+		TwoCommitsPhaseExceutor transactionCoordinator = TwoCommitsPhaseExceutor.createInstance(operations);
 		transactionCoordinator.executeTwoPhaseCommit();
 		
 		//then
-		Mockito.verify(operations.get(0),Mockito.times(0)).commit(Matchers.anyString());
-		Mockito.verify(operations.get(1),Mockito.times(0)).commit(Matchers.anyString());
-		Mockito.verify(operations.get(2),Mockito.times(0)).commit(Matchers.anyString());
-		Mockito.verify(operations.get(3),Mockito.times(0)).commit(Matchers.anyString());
-	}
-
-	@Test
-	public void shouldCallInvertOnAllErrorInRollbackPhase(){
-		//given
-		List<Operation> operations = prepareOperationFromPreparingPhaseWithErrorStatus();
-		when(operations.get(0).rollback(Matchers.anyString())).thenReturn(Operation.Status.OK);
-		when(operations.get(1).rollback(Matchers.anyString())).thenReturn(Operation.Status.ERROR);
-		
-		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
-		transactionCoordinator.executeTwoPhaseCommit();
-		
-		//then
-		Mockito.verify(operations.get(0),Mockito.times(0)).invert(Matchers.anyString());
-		Mockito.verify(operations.get(1),Mockito.times(1)).invert(Matchers.anyString());
-	}
-	
-	@Test
-	public void shouldCallInvertOnAlreadyCommitedOperationWhenErrorInCommitPhase(){
-		//given
-		List<Operation> operations = prepareFullSuccessOperationListPreparingPhase();
-		when(operations.get(0).commit(Matchers.anyString())).thenReturn(Operation.Status.OK);
-		when(operations.get(1).commit(Matchers.anyString())).thenReturn(Operation.Status.ERROR);
-		when(operations.get(2).commit(Matchers.anyString())).thenReturn(Operation.Status.OK);
-		
-		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
-		transactionCoordinator.executeTwoPhaseCommit();
-		
-		//then
-		Mockito.verify(operations.get(0),Mockito.times(1)).invert(Matchers.anyString());
-		Mockito.verify(operations.get(1),Mockito.times(0)).invert(Matchers.anyString());
-		Mockito.verify(operations.get(2),Mockito.times(0)).invert(Matchers.anyString());
-	}
-	
-	@Test
-	public void shouldCallRollbackOnNotCommitedOperationWhenErrorInCommitPhase(){
-		//given
-		List<Operation> operations = prepareFullSuccessOperationListPreparingPhase();
-		when(operations.get(0).commit(Matchers.anyString())).thenReturn(Operation.Status.OK);
-		when(operations.get(1).commit(Matchers.anyString())).thenReturn(Operation.Status.ERROR);
-		when(operations.get(2).commit(Matchers.anyString())).thenReturn(Operation.Status.OK);
-		
-		//when
-		TransactionCoordinator transactionCoordinator = new TransactionCoordinator(operations);
-		transactionCoordinator.executeTwoPhaseCommit();
-		
-		//then
-		Mockito.verify(operations.get(0),Mockito.times(0)).rollback(Matchers.anyString());
-		Mockito.verify(operations.get(1),Mockito.times(0)).rollback(Matchers.anyString());
-		Mockito.verify(operations.get(2),Mockito.times(1)).rollback(Matchers.anyString());
+		for(Operation operation : operations){
+			Mockito.verify(operation,Mockito.times(0)).commit(Matchers.anyString());
+		}
 	}
 	
 	private List<Operation> prepareFullSuccessOperationListForTwoPhase(){

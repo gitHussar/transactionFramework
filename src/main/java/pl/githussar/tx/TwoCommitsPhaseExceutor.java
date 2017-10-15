@@ -5,16 +5,16 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class TransactionCoordinator {
+public class TwoCommitsPhaseExceutor {
 
 	private List<Operation> operations;
-	
-	public TransactionCoordinator(List<Operation> operations){
+
+	public TwoCommitsPhaseExceutor(List<Operation> operations){
 		this.operations = operations;
 	}
 	
-	public static TransactionCoordinator createInstance(List<Operation> operations){
-		return new TransactionCoordinator(operations);
+	public static TwoCommitsPhaseExceutor createInstance(List<Operation> operations){
+		return new TwoCommitsPhaseExceutor(operations);
 	}
 	
 	public Operation.Status executeTwoPhaseCommit(){
@@ -22,7 +22,8 @@ public class TransactionCoordinator {
 		boolean isError = transactionPrepared.stream()
 				.anyMatch(element -> SingleTransaction.Status.ERROR.equals(element.getStatus()));
 		if (isError){
-			executeRollback(transactionPrepared.stream()
+			ErrorPhaseExecutor errorPhase = ErrorPhaseExecutor.createInstance();
+			errorPhase.rollbackPreparedPhase(transactionPrepared.stream()
 					.filter(element -> SingleTransaction.Status.PREPARED.equals(element.getStatus()))
 					.collect(Collectors.toList()));
 			return Operation.Status.ERROR;
@@ -59,41 +60,13 @@ public class TransactionCoordinator {
 				break;
 			}
 		}
-		rollbackCommitedPhase(transactionPrepared, returnStatus == Operation.Status.ERROR);
+		if (returnStatus == Operation.Status.ERROR){
+			ErrorPhaseExecutor errorPhase = ErrorPhaseExecutor.createInstance();
+			errorPhase.rollbackCommitedPhase(transactionPrepared);
+		}
+		
 		return returnStatus;
 	}
 	
-	private void rollbackCommitedPhase(List<SingleTransaction> transactionPrepared, boolean rollback){
-		if (rollback){
-			executeInvertPhase(transactionPrepared.stream()
-					.filter(element -> SingleTransaction.Status.COMMITED.equals(element.getStatus()))
-					.collect(Collectors.toList()));
-			executeRollback(transactionPrepared.stream()
-					.filter(element -> SingleTransaction.Status.PREPARED.equals(element.getStatus()))
-					.collect(Collectors.toList()));
-		}
-	}
 	
-	private Operation.Status executeRollback(List<SingleTransaction> transactionPrepared){
-		Operation.Status returnStatus = Operation.Status.OK;
-		for (SingleTransaction operationInfo : transactionPrepared ){
-			Operation.Status returnedStatus = operationInfo.getOperation().rollback(operationInfo.getOperationId());
-			if (returnedStatus == Operation.Status.ERROR){
-				operationInfo.getOperation().invert(operationInfo.getOperationId());
-				returnStatus = Operation.Status.ERROR;
-			}
-		}
-		return returnStatus;
-	}
-	
-	private Operation.Status executeInvertPhase(List<SingleTransaction> transactions){
-		for (SingleTransaction operationInfo : transactions ){
-			Operation.Status returnedStatus = operationInfo.getOperation().invert(operationInfo.getOperationId());
-			if (returnedStatus == Operation.Status.ERROR){
-				//TODO
-				return Operation.Status.ERROR;
-			}
-		}
-		return Operation.Status.OK;
-	}
 }
