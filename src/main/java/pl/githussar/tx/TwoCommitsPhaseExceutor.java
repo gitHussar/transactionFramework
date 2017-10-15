@@ -36,16 +36,19 @@ public class TwoCommitsPhaseExceutor {
 		for (Operation operation : operations ){
 			String uniqueID = UUID.randomUUID().toString();
 			Operation.Status operationStatus = operation.prepareTransaction(uniqueID);
-			SingleTransaction.Status transactionStatus = (Operation.Status.OK == operationStatus ? 
-					SingleTransaction.Status.PREPARED : SingleTransaction.Status.ERROR);
-			
-			SingleTransaction singleTranaction = new SingleTransaction(uniqueID, transactionStatus, operation);
+			SingleTransaction singleTranaction = createSingleTransaction(uniqueID, operationStatus, operation);
 			operationsPrepared.add(singleTranaction);
 			if (operationStatus == Operation.Status.ERROR){
 				break;
 			}
 		}
 		return operationsPrepared;
+	}
+	
+	private SingleTransaction createSingleTransaction(String id, Operation.Status operationStatus, Operation operation){
+		SingleTransaction.Status transactionStatus = (Operation.Status.OK == operationStatus ? 
+				SingleTransaction.Status.PREPARED : SingleTransaction.Status.ERROR);
+		return new SingleTransaction(id, transactionStatus, operation);
 	}
 	
 	private Operation.Status executeCommitPhase(List<SingleTransaction> transactionPrepared){
