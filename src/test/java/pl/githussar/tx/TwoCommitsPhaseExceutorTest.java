@@ -79,7 +79,7 @@ public class TwoCommitsPhaseExceutorTest {
 		//then
 		Mockito.verify(operations.get(0),Mockito.times(1)).rollback(Matchers.anyString());
 		Mockito.verify(operations.get(1),Mockito.times(1)).rollback(Matchers.anyString());
-		Mockito.verify(operations.get(2),Mockito.times(0)).rollback(Matchers.anyString());
+		Mockito.verify(operations.get(2),Mockito.times(1)).rollback(Matchers.anyString());
 		Mockito.verify(operations.get(3),Mockito.times(0)).rollback(Matchers.anyString());
 	}
 	

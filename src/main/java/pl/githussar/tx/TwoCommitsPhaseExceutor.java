@@ -23,9 +23,7 @@ public class TwoCommitsPhaseExceutor {
 				.anyMatch(element -> SingleTransaction.Status.ERROR.equals(element.getStatus()));
 		if (isError){
 			ErrorPhaseExecutor errorPhase = ErrorPhaseExecutor.createInstance();
-			errorPhase.rollbackPreparedPhase(transactionPrepared.stream()
-					.filter(element -> SingleTransaction.Status.PREPARED.equals(element.getStatus()))
-					.collect(Collectors.toList()));
+			errorPhase.rollbackPreparedPhase(transactionPrepared);
 			return Operation.Status.ERROR;
 		}
 		return executeCommitPhase(transactionPrepared);
