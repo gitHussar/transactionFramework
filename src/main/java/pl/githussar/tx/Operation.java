@@ -1,6 +1,8 @@
 package pl.githussar.tx;
 
-public interface Operation {
+import java.io.Serializable;
+
+public interface Operation extends Serializable{
 
 	enum Status {
 		OK,
